@@ -1,13 +1,14 @@
 import time
+import sys
 import LaunchXIV
 import XIVProcess
 from SyncSNDScripts import sync_sndscripts
 from SyncXIVLauncher import sync_xivlauncher
 from LogUtils import print_with_timestamp
 
-def auto_retainer_loop():
+def auto_retainer_loop(instance):
     if not XIVProcess.is_xiv_running():
-        sync_xivlauncher('3')
+        sync_xivlauncher(str(instance))
         sync_sndscripts()
     else:
         print_with_timestamp("xiv is running")
@@ -21,7 +22,7 @@ def auto_retainer_loop():
                 XIVProcess.kill_launcher()
             else:
                 print_with_timestamp("xiv not running - launching")
-                LaunchXIV.launch_xiv(3, 60, 60)
+                LaunchXIV.launch_xiv(instance, 60, 60)
         else:
             xiv_uptime += SLEEP_TIME
             if xiv_uptime > 203600:
@@ -32,4 +33,4 @@ def auto_retainer_loop():
         time.sleep(SLEEP_TIME)
 
 if __name__ == '__main__':
-    auto_retainer_loop()
+    auto_retainer_loop(int(sys.argv[1]) if len(sys.argv) > 1 else 3)

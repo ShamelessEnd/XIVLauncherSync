@@ -7,9 +7,9 @@ from SyncXIVLauncher import sync_xivlauncher
 from LogUtils import print_with_timestamp
 
 def auto_retainer_loop(instance):
+    sync_sndscripts()
     if not XIVProcess.is_xiv_running():
         sync_xivlauncher(str(instance))
-        sync_sndscripts()
     else:
         print_with_timestamp("xiv is running")
     SLEEP_TIME = 10

@@ -1,27 +1,42 @@
 from LogUtils import print_with_timestamp
+from filelock import FileLock, Timeout
 import SendXIVOTP
 import subprocess
 import sys
 import time
-from XIVProcess import is_xiv_running, is_launcher_running
+from XIVProcess import get_running_xiv_pids, is_xiv_pid_running, is_launcher_running
 import XIVSecrets
+
+def launch_xiv_with_lock(index, otp_timeout, launch_timeout, lockFile):
+    lock = FileLock(lockFile)
+    try:
+        with lock.acquire(timeout=otp_timeout + launch_timeout + 60):
+            return launch_xiv(index, otp_timeout, launch_timeout)
+    except Timeout:
+        print_with_timestamp("failed to acquire lock for launching xiv")
+        return 0
 
 def launch_xiv(index, otp_timeout, launch_timeout):
     print_with_timestamp("launching xiv")
+    current_pids = set(get_running_xiv_pids())
     subprocess.call(XIVSecrets.XIV_LAUNCH_COMMANDS[index], shell=True, cwd='C:\\')
     if not SendXIVOTP.send_xiv_otp(XIVSecrets.XIV_OTP_SECRETS[index], otp_timeout):
         print_with_timestamp("failed to send OTP")
-        return False
+        return 0
     print_with_timestamp("waiting for xiv to launch")
-    while not is_xiv_running() and is_launcher_running() and launch_timeout > 0:
+    xiv_pid = 0
+    while not xiv_pid and is_launcher_running() and launch_timeout > 0:
         time.sleep(1)
         launch_timeout -= 1
-    if is_xiv_running():
-        print_with_timestamp("xiv launched!")
-        return True
+        new_pids = set(get_running_xiv_pids())
+        if new_pids - current_pids:
+            xiv_pid = list(new_pids - current_pids)[0]
+    if xiv_pid and is_xiv_pid_running(xiv_pid):
+        print_with_timestamp("xiv launched: " + str(xiv_pid))
+        return xiv_pid
     else:
         print_with_timestamp("failed to launch xiv")
-        return False
+        return 0
 
 if __name__ == '__main__':
     launch_xiv(int(sys.argv[1]), 300, 60)

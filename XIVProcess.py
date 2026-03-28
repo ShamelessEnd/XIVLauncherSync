@@ -35,6 +35,8 @@ def is_launcher_running():
     return is_process_running("XIVLauncher.exe")
 
 def kill_process(pname):
+    if not is_process_running(pname):
+        return True
     for p in psutil.process_iter():
         try:
             if p.name() == pname:

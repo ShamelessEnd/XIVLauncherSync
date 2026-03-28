@@ -4,7 +4,7 @@ import SendXIVOTP
 import subprocess
 import sys
 import time
-from XIVProcess import get_running_xiv_pids, is_xiv_pid_running, is_launcher_running
+from XIVProcess import get_running_xiv_pids, is_xiv_pid_running, is_launcher_running, kill_launcher
 import XIVSecrets
 
 def launch_xiv_with_lock(index, otp_timeout, launch_timeout, lockFile):
@@ -18,10 +18,13 @@ def launch_xiv_with_lock(index, otp_timeout, launch_timeout, lockFile):
 
 def launch_xiv(index, otp_timeout, launch_timeout):
     print_with_timestamp("launching xiv")
+    if not kill_launcher():
+        return 0
     current_pids = set(get_running_xiv_pids())
     subprocess.call(XIVSecrets.XIV_LAUNCH_COMMANDS[index], shell=True, cwd='C:\\')
     if not SendXIVOTP.send_xiv_otp(XIVSecrets.XIV_OTP_SECRETS[index], otp_timeout):
         print_with_timestamp("failed to send OTP")
+        kill_launcher()
         return 0
     print_with_timestamp("waiting for xiv to launch")
     xiv_pid = 0
@@ -36,6 +39,7 @@ def launch_xiv(index, otp_timeout, launch_timeout):
         return xiv_pid
     else:
         print_with_timestamp("failed to launch xiv")
+        kill_launcher()
         return 0
 
 if __name__ == '__main__':

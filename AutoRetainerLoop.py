@@ -21,12 +21,8 @@ def auto_retainer_loop(instance):
         if not pid or not XIVProcess.is_xiv_pid_running(pid):
             xiv_uptime = 0
             pid = 0
-            if XIVProcess.is_launcher_running():
-                print_with_timestamp("xiv not running and launcher timed out - killing launcher")
-                XIVProcess.kill_launcher()
-            else:
-                print_with_timestamp("xiv not running - launching")
-                pid = LaunchXIV.launch_xiv_with_lock(instance, 60, 60, "auto_retainer_loop.lock")
+            print_with_timestamp("xiv not running - launching")
+            pid = LaunchXIV.launch_xiv_with_lock(instance, 60, 60, "auto_retainer_loop.lock")
         else:
             xiv_uptime += SLEEP_TIME
             if xiv_uptime > 203600:

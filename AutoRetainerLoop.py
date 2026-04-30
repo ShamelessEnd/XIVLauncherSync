@@ -22,7 +22,7 @@ def auto_retainer_loop(instance):
             xiv_uptime = 0
             pid = 0
             print_with_timestamp("xiv not running - launching")
-            pid = LaunchXIV.launch_xiv_with_lock(instance, 60, 60, "auto_retainer_loop.lock")
+            pid = LaunchXIV.launch_xiv_with_lock(instance, 60, 300, "auto_retainer_loop.lock")
         else:
             xiv_uptime += SLEEP_TIME
             if xiv_uptime > 203600:

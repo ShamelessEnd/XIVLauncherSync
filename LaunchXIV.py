@@ -16,12 +16,14 @@ def launch_xiv_with_lock(index, otp_timeout, launch_timeout, lockFile):
         print_with_timestamp("failed to acquire lock for launching xiv")
         return 0
 
-def launch_xiv(index, otp_timeout, launch_timeout):
+def launch_xiv(index, otp_timeout, launch_timeout, auto_login=True):
     print_with_timestamp("launching xiv")
     if not kill_launcher():
         return 0
     current_pids = set(get_running_xiv_pids())
     subprocess.call(XIVSecrets.XIV_LAUNCH_COMMANDS[index], shell=True, cwd='C:\\')
+    if not auto_login:
+        return 0
     if not SendXIVOTP.send_xiv_otp(XIVSecrets.XIV_OTP_SECRETS[index], otp_timeout):
         print_with_timestamp("failed to send OTP")
         kill_launcher()
@@ -43,4 +45,4 @@ def launch_xiv(index, otp_timeout, launch_timeout):
         return 0
 
 if __name__ == '__main__':
-    launch_xiv(int(sys.argv[1]), 300, 60)
+    launch_xiv(int(sys.argv[1]), 60, 300, len(sys.argv) < 3 or sys.argv[2].lower() != "false")
